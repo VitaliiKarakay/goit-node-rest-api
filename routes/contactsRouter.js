@@ -11,13 +11,6 @@ import { createContactSchema, updateContactSchema } from "../schemas/contactsSch
 
 const contactsRouter = express.Router();
 
-const ensureBodyHasAtLeastOneField = (req, res, next) => {
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).json({ message: "Body must have at least one field" });
-  }
-  next();
-};
-
 contactsRouter.get("/", getAllContacts);
 
 contactsRouter.get("/:id", getOneContact);
@@ -28,7 +21,6 @@ contactsRouter.post("/", validateBody(createContactSchema), createContact);
 
 contactsRouter.put(
   "/:id",
-  ensureBodyHasAtLeastOneField,
   validateBody(updateContactSchema),
   updateContact
 );
