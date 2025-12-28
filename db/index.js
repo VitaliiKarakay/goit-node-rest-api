@@ -1,4 +1,6 @@
 import { Sequelize } from "sequelize";
+import { initUserModel } from "../models/user.js";
+import { initContactModel } from "../models/contact.js";
 
 const {
     PG_HOST,
@@ -16,6 +18,9 @@ export const sequelize = new Sequelize(PG_DATABASE, PG_USER, PG_PASSWORD, {
     logging: false,
     dialectOptions: PG_SSL === "true" ? { ssl: { require: true } } : {},
 });
+
+initUserModel(sequelize);
+initContactModel(sequelize);
 
 export async function initDb() {
     try {

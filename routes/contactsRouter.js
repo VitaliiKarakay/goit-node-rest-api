@@ -9,6 +9,7 @@ import {
 import validateBody from "../helpers/validateBody.js";
 import { createContactSchema, updateContactSchema, updateFavoriteSchema } from "../schemas/contactsSchemas.js";
 import { updateStatusContact } from "../services/contactsServices.js";
+import authenticate from "../middlewares/authenticate.js";
 
 const contactsRouter = express.Router();
 
@@ -18,6 +19,8 @@ const ensureBodyHasAtLeastOneField = (req, res, next) => {
   }
   next();
 };
+
+contactsRouter.use(authenticate);
 
 contactsRouter.get("/", getAllContacts);
 
