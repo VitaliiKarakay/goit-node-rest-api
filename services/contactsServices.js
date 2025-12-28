@@ -2,6 +2,8 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
+import {Contact} from "../models/contact.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,4 +58,16 @@ export async function updateContact(id, data) {
     contacts[index] = updated;
     await writeContactsFile(contacts);
     return updated;
+}
+
+export async function updateStatusContact(id, body) {
+    const { favorite } = body;
+
+    const [count, rows] = await Contact.update(
+        { favorite },
+        { where: { id }, returning: true }
+    );
+
+    if (count === 0) return null;
+    return rows[0];
 }
