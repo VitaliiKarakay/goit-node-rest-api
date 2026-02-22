@@ -1,73 +1,54 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-import { randomUUID } from "crypto";
-import {Contact} from "../models/contact.js";
+import { Contact } from "../models/contact.js";
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const contactsPath = path.join(__dirname, "..", "db", "contacts.json");
-
-async function readContactsFile() {
-    try {
-        const data = await fs.readFile(contactsPath, "utf8");
-        return JSON.parse(data);
-    } catch (err) {
-        if (err.code === "ENOENT") return [];
-        throw err;
-    }
+/**
+ * Отримати всі контакти для конкретного користувача
+ */
+export async function listContacts(userId) {
+    return await Contact.findAll({ where: { owner: userId } });
 }
 
-async function writeContactsFile(contacts) {
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), "utf8");
+/**
+ * Отримати один контакт по ID (з перевіркою власника)
+ */
+export async function getContactById(id, userId) {
+    return await Contact.findOne({ where: { id, owner: userId } });
 }
 
-export async function listContacts() {
-    return await readContactsFile();
+/**
+ * Створити новий контакт
+ */
+export async function addContact(data, userId) {
+    const { name, email, phone, favorite = false } = data;
+    return await Contact.create({ name, email, phone, favorite, owner: userId });
 }
 
-export async function getContactById(id) {
-    const contacts = await readContactsFile();
-    return contacts.find((c) => String(c.id) === String(id)) || null;
+/**
+ * Видалити контакт
+ */
+export async function removeContact(id, userId) {
+    const deletedCount = await Contact.destroy({ where: { id, owner: userId } });
+    return deletedCount > 0;
 }
 
-export async function addContact({ name, email, phone }) {
-    const contacts = await readContactsFile();
-    const newContact = { id: randomUUID(), name, email, phone };
-    contacts.push(newContact);
-    await writeContactsFile(contacts);
-    return newContact;
+/**
+ * Оновити контакт (повне оновлення)
+ */
+export async function updateContact(id, data, userId) {
+    const contact = await Contact.findOne({ where: { id, owner: userId } });
+    if (!contact) return null;
+
+    await contact.update(data);
+    return contact;
 }
 
-export async function removeContact(id) {
-    const contacts = await readContactsFile();
-    const index = contacts.findIndex((c) => String(c.id) === String(id));
-    if (index === -1) return null;
-    const [removed] = contacts.splice(index, 1);
-    await writeContactsFile(contacts);
-    return removed;
-}
-
-export async function updateContact(id, data) {
-    const contacts = await readContactsFile();
-    const index = contacts.findIndex((c) => String(c.id) === String(id));
-    if (index === -1) return null;
-    const current = contacts[index];
-    const updated = { ...current, ...data, id: current.id };
-    contacts[index] = updated;
-    await writeContactsFile(contacts);
-    return updated;
-}
-
-export async function updateStatusContact(id, body) {
+/**
+ * Оновити статус favorite
+ */
+export async function updateStatusContact(id, body, userId) {
     const { favorite } = body;
+    const contact = await Contact.findOne({ where: { id, owner: userId } });
+    if (!contact) return null;
 
-    const [count, rows] = await Contact.update(
-        { favorite },
-        { where: { id }, returning: true }
-    );
-
-    if (count === 0) return null;
-    return rows[0];
+    await contact.update({ favorite });
+    return contact;
 }

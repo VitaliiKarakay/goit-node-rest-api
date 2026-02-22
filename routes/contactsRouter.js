@@ -5,10 +5,10 @@ import {
   deleteContact,
   createContact,
   updateContact,
+  updateContactStatus,
 } from "../controllers/contactsControllers.js";
 import validateBody from "../helpers/validateBody.js";
 import { createContactSchema, updateContactSchema, updateFavoriteSchema } from "../schemas/contactsSchemas.js";
-import { updateStatusContact } from "../services/contactsServices.js";
 import authenticate from "../middlewares/authenticate.js";
 
 const contactsRouter = express.Router();
@@ -32,16 +32,6 @@ contactsRouter.post("/", validateBody(createContactSchema), createContact);
 
 contactsRouter.put("/:id", ensureBodyHasAtLeastOneField, validateBody(updateContactSchema), updateContact);
 
-contactsRouter.patch("/:id/favorite", validateBody(updateFavoriteSchema), async (req, res, next) => {
-  try {
-    const updated = await updateStatusContact(req.params.id, req.body);
-    if (!updated) {
-      return res.status(404).json({ message: "Not found" });
-    }
-    return res.status(200).json(updated);
-  } catch (err) {
-    next(err);
-  }
-});
+contactsRouter.patch("/:id/favorite", validateBody(updateFavoriteSchema), updateContactStatus);
 
 export default contactsRouter;
