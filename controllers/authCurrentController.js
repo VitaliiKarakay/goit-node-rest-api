@@ -18,6 +18,7 @@ export async function current(req, res, next) {
         return res.status(200).json({
             email: user.email,
             subscription: user.subscription,
+            avatarURL: user.avatarURL,
         });
     } catch (err) {
         next(err);

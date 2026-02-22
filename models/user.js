@@ -36,6 +36,11 @@ export function initUserModel(sequelize) {
                 allowNull: true,
                 defaultValue: null,
             },
+            avatarURL: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                defaultValue: null,
+            },
         },
         {
             sequelize,
