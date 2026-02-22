@@ -1,9 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
-import { initUserModel } from "../models/user.js";
-import { sequelize } from "../db/index.js";
-
-const User = sequelize.models.User || initUserModel(sequelize);
+import * as authServices from "../services/authServices.js";
 
 export async function updateAvatar(req, res, next) {
     try {
@@ -19,11 +16,14 @@ export async function updateAvatar(req, res, next) {
         const avatarsDir = path.resolve("public", "avatars");
         const resultPath = path.join(avatarsDir, filename);
 
+        // Переміщуємо файл з tmp в public/avatars
         await fs.rename(tmpPath, resultPath);
 
+        // Формуємо URL для аватарки
         const avatarURL = `/avatars/${filename}`;
 
-        await User.update({ avatarURL }, { where: { id } });
+        // Оновлюємо користувача через сервіс
+        await authServices.updateUserAvatar(id, avatarURL);
 
         return res.status(200).json({ avatarURL });
     } catch (err) {

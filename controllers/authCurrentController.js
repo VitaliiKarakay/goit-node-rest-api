@@ -1,7 +1,4 @@
-import { initUserModel } from "../models/user.js";
-import { sequelize } from "../db/index.js";
-
-const User = sequelize.models.User || initUserModel(sequelize);
+import * as authServices from "../services/authServices.js";
 
 export async function current(req, res, next) {
     try {
@@ -10,16 +7,8 @@ export async function current(req, res, next) {
             return res.status(401).json({ message: "Not authorized" });
         }
 
-        const user = await User.findByPk(id);
-        if (!user) {
-            return res.status(401).json({ message: "Not authorized" });
-        }
-
-        return res.status(200).json({
-            email: user.email,
-            subscription: user.subscription,
-            avatarURL: user.avatarURL,
-        });
+        const user = await authServices.getCurrentUser(id);
+        return res.status(200).json(user);
     } catch (err) {
         next(err);
     }

@@ -1,19 +1,9 @@
-import HttpError from "../helpers/HttpError.js";
-import { initUserModel } from "../models/user.js";
-import { sequelize } from "../db/index.js";
-
-const User = sequelize.models.User || initUserModel(sequelize);
+import * as authServices from "../services/authServices.js";
 
 export async function logout(req, res, next) {
     try {
         const { id } = req.user || {};
-        const user = await User.findByPk(id);
-
-        if (!user) {
-            return res.status(401).json({ message: "Not authorized" });
-        }
-
-        await user.update({ token: null });
+        await authServices.logoutUser(id);
         return res.status(204).send();
     } catch (err) {
         next(err);
