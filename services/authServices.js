@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
+import { nanoid } from "nanoid";
 import { initUserModel } from "../models/user.js";
 import { sequelize } from "../db/index.js";
 import HttpError from "../helpers/HttpError.js";
+import { sendVerifyEmail } from "./emailServices.js";
 
 const User = sequelize.models.User || initUserModel(sequelize);
 const { JWT_SECRET = "dev_secret" } = process.env;
@@ -16,7 +18,8 @@ export async function registerUser(email, password) {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const avatarURL = gravatar.url(email, { s: '250', d: 'retro' }, true);
+    const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
+    const verificationToken = nanoid();
 
     const user = await User.create({
         email,
@@ -24,7 +27,11 @@ export async function registerUser(email, password) {
         subscription: "starter",
         token: null,
         avatarURL,
+        verify: false,
+        verificationToken,
     });
+
+    await sendVerifyEmail(email, verificationToken);
 
     return {
         email: user.email,
@@ -36,6 +43,10 @@ export async function loginUser(email, password) {
     const user = await User.findOne({ where: { email } });
     if (!user) {
         throw HttpError(401, "Email or password is wrong");
+    }
+
+    if (!user.verify) {
+        throw HttpError(401, "Email not verified");
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
