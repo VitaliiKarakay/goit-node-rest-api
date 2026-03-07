@@ -105,3 +105,17 @@ export async function verifyUserEmail(verificationToken) {
         verificationToken: null,
     });
 }
+
+export async function resendVerificationEmail(email) {
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+        throw HttpError(404, "User not found");
+    }
+
+    if (user.verify) {
+        throw HttpError(400, "Verification has already been passed");
+    }
+
+    await sendVerifyEmail(email, user.verificationToken);
+}
