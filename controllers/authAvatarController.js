@@ -16,13 +16,10 @@ export async function updateAvatar(req, res, next) {
         const avatarsDir = path.resolve("public", "avatars");
         const resultPath = path.join(avatarsDir, filename);
 
-        // Переміщуємо файл з tmp в public/avatars
         await fs.rename(tmpPath, resultPath);
 
-        // Формуємо URL для аватарки
         const avatarURL = `/avatars/${filename}`;
 
-        // Оновлюємо користувача через сервіс
         await authServices.updateUserAvatar(id, avatarURL);
 
         return res.status(200).json({ avatarURL });

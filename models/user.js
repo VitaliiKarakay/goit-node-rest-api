@@ -41,6 +41,13 @@ export function initUserModel(sequelize) {
                 allowNull: true,
                 defaultValue: null,
             },
+            verify: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            verificationToken: {
+                type: DataTypes.STRING,
+            },
         },
         {
             sequelize,
