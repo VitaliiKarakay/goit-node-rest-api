@@ -82,3 +82,15 @@ export async function updateUserAvatar(userId, avatarURL) {
     return avatarURL;
 }
 
+export async function verifyUserEmail(verificationToken) {
+    const user = await User.findOne({ where: { verificationToken } });
+
+    if (!user) {
+        throw HttpError(404, "User not found");
+    }
+
+    await user.update({
+        verify: true,
+        verificationToken: null,
+    });
+}
